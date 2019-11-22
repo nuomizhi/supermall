@@ -28,7 +28,7 @@ export default {
   },
   mounted() {
     this.scroll = new BScroll(this.$refs.wrapper, this.options);
-    if (this.options.probeType == 2 || this.options.probeType == 2) {
+    if (this.options.probeType == 2 || this.options.probeType == 3) {
       //开启设置监听滚动才监听
       this.scroll.on("scroll", position => {
         // console.log(position);
@@ -57,6 +57,10 @@ export default {
       console.log("刷新了");
       // console.log(arguments);
       this.scroll && this.scroll.refresh();
+    },
+    getPositionY(){
+      return this.scroll ? this.scroll.y : 0 ;
+
     }
   }
 };

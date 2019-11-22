@@ -4,6 +4,13 @@
     <nav-bar class="home-bar">
       <div slot="center">购物街</div>
     </nav-bar>
+    <tab-control
+      :titles="['流行','新款','精选']"
+      class="tab-control"
+      @tabClick="tabClick"
+      ref="tabControl1"
+      v-show="isTabControlFixed"
+    />
     <scroll
       class="wrapper"
       ref="scroll"
@@ -12,13 +19,15 @@
       @pullingUp="loadMore"
     >
       <!-- 由于轮播图组件较多,所以又可以给其封装 -->
-      <home-swiper :banners="banners"></home-swiper>
+      <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad" />
       <home-recommend :recommends="recommends" />
       <home-feature />
-      <tab-control :titles="['流行','新款','精选']"
-        class="tab-control" 
-        @tabClick="tabClick" 
-        ref="tabControl"/>
+      <!-- 标签栏tab-control的吸顶效果通过外面建一个同样的tab-control，然后通过判断位置来动态的决定显示哪一个-->
+      <tab-control
+        :titles="['流行','新款','精选']"
+        @tabClick="tabClick"
+        ref="tabControl2"
+      />
       <!-- 将数据传给goods组件，动态创建,参数通过控制栏tab-control传到父组件知道当前点击了谁 -->
       <goods-list :goods="showGoods" />
     </scroll>
@@ -40,7 +49,7 @@ import HomeFeature from "./childComps/HomeFeature";
 import { getHomeMultidata, getHomeGoods } from "network/home";
 
 //工具类
-import {debounce} from 'common/utils'
+import { debounce } from "common/utils";
 
 export default {
   name: "Home",
@@ -69,7 +78,9 @@ export default {
       },
       currentType: "pop",
       isShowBackTop: false,
-      tabControlOffsetTop: 0 //控制组件到顶部的距离
+      tabControlOffsetTop: 0, //控制组件到顶部的距离
+      isTabControlFixed: false, //控制标签控制栏的吸附
+      leavePositionY: 0 //记录离开时当前的y的位置
     };
   },
   created() {
@@ -86,10 +97,15 @@ export default {
       // this.$refs.scroll.refresh();
       refresh();
     });
-    //组件没有这个属性，要通过$el拿组件里面的元素
-    this.tabControlOffsetTop = this.$refs.tabControl.$el.offsetTop
-    // console.log(this.tabControlOffsetTop);
-    
+  },
+  // 一激活组件时候就滚到之前离开的位置,新版本better-scroll貌似不用
+  activated(){
+    this.$refs.scroll.scrollTo(0,this.leavePositionY,0);
+    //注意刷新一下
+    this.$refs.scroll.refresh();
+  },
+  deactivated(){
+    this.leavePositionY =this.$refs.scroll.getPositionY();
   },
   methods: {
     //组件的方法,改变currentType，用来传给goodList组件
@@ -107,11 +123,17 @@ export default {
           break;
         default:
           break;
-      }
+      };
+      // 因为有两个个标签控制组件,所以一个组件内被点击时,同时得修改另一个组件的状态
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
     },
+    // 此函数能实时监听y的位置
     // 通过改变isShowBackTop控制回到顶部按钮的实现
+    //通过改变 isTabControlFixed来决定是否改变标签控制的fixed
     contentScroll(position) {
       this.isShowBackTop = -position.y > 1000;
+      this.isTabControlFixed = -position.y > this.tabControlOffsetTop;
     },
     // 回到顶部功能实现
     backClick() {
@@ -128,6 +150,12 @@ export default {
       setTimeout(() => {
         this.$refs.scroll.finishPullUp();
       }, 500);
+    },
+    //监听轮播图的图片有没有加载至少一张
+    swiperImageLoad() {
+      //组件没有这个属性，要通过$el拿组件里面的元素
+      this.tabControlOffsetTop = this.$refs.tabControl2.$el.offsetTop;
+      // console.log(this.tabControlOffsetTop);
     },
     // 封装网络请求方法，方便直接调用
     getMultidata() {
@@ -161,27 +189,33 @@ export default {
 /* 设备适配放在后面 */
 
 #home {
-  /* 解决home-bar脱离标准流带来的头部缩进去问题 */
-  padding-top: 44px;
+  /* 使用原生时候解决home-bar脱离标准流带来的头部缩进去问题 */
+  /* padding-top: 44px; */
 }
 
 .home-bar {
   background-color: var(--color-tint);
   color: #fff;
-  /* 最顶层显示 */
-  position: fixed;
+  position: relative;
+  z-index: 9;
+  /* 使用原生时候,最顶层显示, */
+  /* position: fixed;
   z-index: 9;
   left: 0;
   right: 0;
-  top: 0;
+  top: 0; */
+}
+.tab-control{
+  position: relative;
+  z-index: 9;
 }
 /* 新特性，此元素达到顶部44px,改变position,但是兼容性不好，
   用来控制栏下滑置顶 */
-.tab-control {
+/* .tab-control {
   position: sticky;
   top: 44px;
   z-index: 9;
-}
+} */
 /* 有两种方案来确定wrapper的高度，一是定位，二是计算 */
 .wrapper {
   position: absolute;
