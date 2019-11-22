@@ -6,7 +6,8 @@ module.exports = {
         'assets':'@/assets',
         'components':'@/components',
         'network':'@/network',
-        'views':'@/views'
+        'views':'@/views',
+        'common': '@/common'
         // 'assets':path.resolve(__dirname, './assets'),
         // 'components':path.resolve(__dirname, './components'),
         // 'network':path.resolve(__dirname, './network'),
