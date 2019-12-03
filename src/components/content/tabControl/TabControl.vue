@@ -33,7 +33,7 @@ export default {
     itemClick(index) {
       //用来切换标题的
       this.currentIndex = index;
-      // 用来告诉父组件哪个别点击了
+      // 用来告诉父组件哪个被点击了
       this.$emit('tabClick',index)
     }
   }

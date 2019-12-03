@@ -54,16 +54,19 @@ export default {
     //完成刷新功能
     refresh() {
       // 刷新
-      console.log("刷新了");
+      // console.log("刷新了");
       // console.log(arguments);
       this.scroll && this.scroll.refresh();
     },
     getPositionY(){
       return this.scroll ? this.scroll.y : 0 ;
-
     }
   }
 };
 </script>
 <style scoped>
+.wrapper{
+  /* 可以防止鼠标滚动 */
+  overflow: hidden;
+}
 </style>

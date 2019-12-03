@@ -1,10 +1,11 @@
 <template>
   <div id="app">
     <!-- 在配置好各种路径后，在此处开始引入 -->
-    <keep-alive>
+    <keep-alive exclude="Detail">
       <router-view></router-view>
     </keep-alive>
     <main-tab-bar></main-tab-bar>
+    <div id="test"></div>
   </div>
 </template>
 
